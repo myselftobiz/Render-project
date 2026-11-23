@@ -28,12 +28,12 @@ jobs:
         run: npm install --force
 
       - name: Align postprocessing with Three.js 0.160.1
-        run: npm install --no-save postprocessing@6.36.3 @react-three/postprocessing@2.16.3 --legacy-peer-deps --force
+        run: npm install --no-save postprocessing@6.36.3 @react-three/postprocessing@2.16.2 --legacy-peer-deps --force
 
       - name: Render Remotion 2K video
         run: |
           mkdir -p /tmp/remotion-tmp out/ice-carrier
-          TEMP=/tmp/remotion-tmp TMP=/tmp/remotion-tmp npx remotion render src/sandboxes/ice-carrier/index.tsx IceCarrierShort out/ice-carrier/video.mp4 --codec h264 --crf 16 --scale 1 --concurrency=2
+          TEMP=/tmp/remotion-tmp TMP=/tmp/remotion-tmp npx remotion render src/sandboxes/ice-carrier/index.tsx IceCarrierShort out/ice-carrier/video.mp4 --codec h264 --crf 16 --scale 1 --concurrency=1
 
       - name: Mux audio with video
         run: ffmpeg -y -i out/ice-carrier/video.mp4 -i audio/mix.wav -map 0:v:0 -map 1:a:0 -c:v copy -c:a aac -b:a 192k out/ice-carrier/final.mp4
