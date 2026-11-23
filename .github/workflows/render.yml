@@ -1,0 +1,45 @@
+name: Render 2K Remotion Video
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [ main ]
+
+jobs:
+  render:
+    runs-on: ubuntu-latest
+    timeout-minutes: 360
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '20'
+
+      - name: Install system dependencies for Chromium and FFmpeg
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y ffmpeg libnss3 libatk1.0-0 libatk-bridge2.0-0 libcups2 libdrm2 libxkbcommon0 libxcomposite1 libxdamage1 libxfixes3 libxrandr2 libgbm1 libasound2t64
+
+      - name: Install project dependencies
+        run: npm install --force
+
+      - name: Align postprocessing with Three.js 0.160.1
+        run: npm install --no-save postprocessing@6.36.3 @react-three/postprocessing@2.16.3 --legacy-peer-deps
+
+      - name: Render Remotion 2K video
+        run: |
+          mkdir -p /tmp/remotion-tmp out/ice-carrier
+          TEMP=/tmp/remotion-tmp TMP=/tmp/remotion-tmp npx remotion render src/sandboxes/ice-carrier/index.tsx IceCarrierShort out/ice-carrier/video.mp4 --codec h264 --crf 16 --scale 1 --concurrency=2
+
+      - name: Mux audio with video
+        run: ffmpeg -y -i out/ice-carrier/video.mp4 -i audio/mix.wav -map 0:v:0 -map 1:a:0 -c:v copy -c:a aac -b:a 192k out/ice-carrier/final.mp4
+
+      - name: Upload final 2K video
+        uses: actions/upload-artifact@v4
+        with:
+          name: ice-carrier-2k-final
+          path: out/ice-carrier/final.mp4
