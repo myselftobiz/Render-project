@@ -1,0 +1,5 @@
+node_modules/
+remotion-tmp/
+tmp_audio/
+out/
+*.tar.gz
